@@ -6,6 +6,11 @@ function PopupWithForm(props) {
       props.onClose();
     }
   };
+  const isDisabled = props.disabled || props.isPending;
+  const buttonClass = isDisabled
+    ? 'popup__button popup__submit-button popup__button_disabled'
+    : 'popup__button popup__submit-button'
+
   return (
     <div
       onClick={onClickOverlay}
@@ -17,6 +22,7 @@ function PopupWithForm(props) {
         <form
           className={`popup__form popup__form_type_${props.name}`}
           name={props.name}
+          onSubmit={props.onSubmit}
         >
           <button
             type="button"
@@ -25,8 +31,12 @@ function PopupWithForm(props) {
           />
           <h2 className="popup__title">{props.title}</h2>
           {props.children}
-          <button className="popup__button popup__submit-button" type="submit">
-            {props.submitButtonText}
+          <button
+            className={buttonClass}
+            type="submit"
+            disabled={isDisabled}
+          >
+            {props.isPending ? 'Сохранение...' : props.submitButtonText}
           </button>
         </form>
       </div>

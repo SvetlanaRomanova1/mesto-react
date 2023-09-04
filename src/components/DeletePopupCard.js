@@ -1,13 +1,31 @@
 import React from 'react';
-import PopupWithForm from './PopupWithForm';
 
-function DeletePopupCard() {
+function DeletePopupCard(props) {
+  const popupClass = props.isOpen ? 'popup popup_opened' : 'popup'
   return (
-    <PopupWithForm name="delete-card" title="Вы уверены?" submitButtonText="Да">
+    <div
+      className={popupClass}
+      id="popupDeleteCard"
+      onClick={props.onClose}
+    >
       <div className="popup__content" id="confirmPopup">
-        <div className="popup__form-confirm" name="delete-card"></div>
+        <button
+          className="popup__cross-button popup__close-button"
+          type="button"
+          onClick={props.onClose}
+        />
+        <form className="popup__form-confirm">
+          <p className="popup__title">Вы уверены?</p>
+          <button
+            className="popup__confirm-button"
+            type="submit"
+            onClick={props.onSubmit}
+          >
+            {props.isPending ? 'Сохранение...' : 'Да'}
+          </button>
+        </form>
       </div>
-    </PopupWithForm>
+    </div>
   );
 }
 

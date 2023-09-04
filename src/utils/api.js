@@ -86,7 +86,7 @@ class Api {
         ...this.headers,
       },
       body: JSON.stringify({
-        avatar: avatar.link,
+        avatar,
       }),
     }).then(this._checkResponse);
   }
