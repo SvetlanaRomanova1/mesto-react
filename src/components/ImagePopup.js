@@ -1,6 +1,10 @@
 import React from 'react';
+import { usePopupClose } from '../hooks/use-popup-close/index';
 
 function ImagePopup(props) {
+
+  usePopupClose(props.selectedCard?.link, props.onClose);
+
   return (
     <div
       onClick={props.onClose}
@@ -12,7 +16,7 @@ function ImagePopup(props) {
           className="popup__cross-button"
           onClick={props.onClose}
         />
-        <img src={props.selectedCard?.link} alt="" className="popup__image" />
+        <img src={props.selectedCard?.link} alt="Изображение" className="popup__image" />
         <p className="popup__text">{props.selectedCard?.name}</p>
       </div>
     </div>

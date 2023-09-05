@@ -1,7 +1,5 @@
-import { useEffect} from 'react';
 import React from 'react';
 import imageAvatar from '../image/avatar.jpg';
-import api from '../utils/api';
 import Card from './Card';
 import {CurrentUserContext} from '../constexts/CurrentUserContext';
 
@@ -9,19 +7,6 @@ function Main(props) {
   const { cards, setCards } = props;
   // Получаем объект текущего пользователя из контекста
   const currentUser = React.useContext(CurrentUserContext);
-
-
-  useEffect(() => {
-    api
-      .getCards()
-      .then((initialCards) => {
-        setCards(initialCards);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, []);
-
 
   return (
     <main>
@@ -31,7 +16,7 @@ function Main(props) {
             <img
               className="profile__avatar"
               src={currentUser.avatar || imageAvatar}
-              alt="Фото: Жак-ИвКусто"
+              alt="Фото профиля"
             />
           </div>
           <div className="profile__info">

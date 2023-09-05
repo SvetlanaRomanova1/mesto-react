@@ -1,39 +1,46 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect} from 'react';
 import PopupWithForm from './PopupWithForm';
-import { useValidateField } from '../hooks/use-validate-field';
-import { useIsEditFiled } from '../hooks/use-is-edit-field';
+import { useFormAndValidation } from '../hooks/use-form-and-validation';
+import { CurrentUserContext } from '../constexts/CurrentUserContext';
 
 function AddPlacePopup(props) {
-  const nameRef = useRef();
-  const linkRef = useRef();
-  const [name, setName] = useState('');
-  const [link, setLink] = useState('');
 
-  const [isTypeName, setIsTypeName] = useIsEditFiled();
-  const [isTypeLink, setIsTypeLink] = useIsEditFiled();
+  const currentUser = React.useContext(CurrentUserContext);
 
-  const onChangeName = (e) => {
-    setIsTypeName(true);
-    setName(e.target.value);
-  }
-
-  const onChangeLink = (e) => {
-    setIsTypeLink(true);
-    setLink(e.target.value);
-  }
-
-  const validateMessageLink = useValidateField(linkRef);
-  const validateMessageName = useValidateField(nameRef);
-
+  const {
+    values,
+    handleChange,
+    errors,
+    isValid,
+    resetForm,
+    setValues,
+    setIsValid
+  } = useFormAndValidation();
 
   // Обработчик отправки формы - Добавить место
-  function handleSubmit(event){
-    event.preventDefault()
+  function handleSubmit(e){
+    e.preventDefault()
     props.onAddPlace({
-      name,
-      link
-    })
+      name: values.place,
+      link: values.link
+    });
   }
+
+  useEffect(() => {
+    if (currentUser.place) {
+      setValues({
+        ...values,
+        ['name']: currentUser.place || '',
+        ['link']: currentUser.link || ''
+      });
+      setIsValid(true);
+    }
+
+    return () => {
+      resetForm()
+    }
+  }, [currentUser]);
+
 
   return (
     <PopupWithForm
@@ -43,13 +50,12 @@ function AddPlacePopup(props) {
       isOpen={props.isOpen}
       onClose={props.onClose}
       onSubmit={handleSubmit}
-      disabled={props.isPending || validateMessageLink || validateMessageName}
+      disabled={props.isPending || !isValid}
       isPending={props.isPending}
     >
       <label className="popup__field">
         <input
           type="text"
-          ref={nameRef}
           className="popup__input"
           id="popupAddPlaceInput"
           name="place"
@@ -57,25 +63,26 @@ function AddPlacePopup(props) {
           minLength="2"
           maxLength="30"
           required
-          onChange={onChangeName}
+          onChange={handleChange}
+          value={values.place || ''}
         />
         <span className="popup__error-visible" >
-          {isTypeName && validateMessageName}
+          {errors.place}
         </span>
       </label>
       <label className="popup__field">
         <input
           type="url"
-          ref={linkRef}
           className="popup__input"
           id="popupLinkAddPlaceInput"
           name="link"
           placeholder="Ссылка на картинку"
           required
-          onChange={onChangeLink}
+          onChange={handleChange}
+          value={values.link || ''}
         />
         <span className="popup__error-visible" >
-          {isTypeLink && validateMessageLink}
+          {errors.link}
         </span>
       </label>
     </PopupWithForm>

@@ -10,7 +10,6 @@ import ImagePopup from './ImagePopup';
 import api from '../utils/api';
 import { CurrentUserContext } from '../constexts/CurrentUserContext';
 
-
 function App() {
   // Стейты открытия и закрытия попапов
   const [isEditProfilePopupOpen, setEditProfilePopupOpen] = useState(false);
@@ -24,6 +23,18 @@ function App() {
   const [cards, setCards] = useState([]);
 // Стейт Ожидание загрузки
   const [isPending, setIsPending] = useState(false);
+
+  useEffect(() => {
+    // Получаем картинки
+    api
+      .getCards()
+      .then((initialCards) => {
+        setCards(initialCards);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
 
   useEffect(() => {
     // Получаем информацию о текущем пользователе при загрузке компонента
@@ -71,16 +82,34 @@ function App() {
 
     // Отправляем запрос в API и получаем обновлённые данные карточки
     if (isLiked) {
-      api.likeCardRemove(card._id).then((newCard) => {
+      api.likeCardRemove(card._id)
+        .then((newCard) => {
         setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
-      });
+      })
+        .catch((error) => {
+          console.error('Error deleting card like:', error);
+        });
     } else {
-      api.likeCardAdd(card._id).then((newCard) => {
+      api.likeCardAdd(card._id)
+        .then((newCard) => {
         setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
-      });
+      })
+        .catch((error) => {
+          console.error('Error add card like:', error);
+        });
     }
   }
 
+  // Универсальная функция для обработки запросов
+  function handleSubmit(request){
+    setIsPending(true);
+
+    request()
+      .then(closeAllPopups)
+      .catch(console.error)
+      .finally(() =>setIsPending(false));
+
+  }
   // Обработчик удаления карточки
   function handleCardDelete(e) {
     e.preventDefault();
@@ -92,71 +121,34 @@ function App() {
     api.deleteCard(deleteCard._id)
       .then(() => {
         setCards((state) => state.filter((c) => c._id !== deleteCard._id));
+      })
+      .catch(error => {
+        console.error('Error deleting card:', error);
+      })
+      .finally(() => {
         // Закрываем модальные окна
         closeAllPopups();
         // Установка isPending в false после успешного запроса
         setIsPending(false);
-      })
-      .catch(error => {
-        console.error('Error deleting card:', error);
       });
   }
 
   // Обработчик формы - Редактировать профиль
   function handleUpdateUser(updatedUserInfo) {
-    // Установка isPending в true перед отправкой запроса
-    setIsPending(true);
-
-   // Вызов API для редактирования информации о пользователе
-    api.editUserInfo(updatedUserInfo)
-      .then((result) => {
-        setCurrentUser(result);
-        // Закрываем модальные окна
-        closeAllPopups();
-   // Установка isPending в false после успешного запроса
-        setIsPending(false);
-      })
-      .catch((error) => {
-        console.error('Error updating user info:', error);
-      });
+    handleSubmit(() => api.editUserInfo(updatedUserInfo).then(setCurrentUser));
   }
 
   // Обработчик формы - Обновить аватар
   function handleUpdateAvatar(onUpdateAvatar) {
-    // Установка isPending в true перед отправкой запроса
-    setIsPending(true);
-
-    // Вызов API для обновления аватара
-    api.changeAvatar(onUpdateAvatar)
-      .then((result) => {
-        setCurrentUser(result);
-        // Закрываем модальные окна
-        closeAllPopups();
-        // Установка isPending в false после успешного запроса
-        setIsPending(false);
-      })
-      .catch((error) => {
-        console.error('Error updating avatar:', error);
-      });
+    handleSubmit(() => api.changeAvatar(onUpdateAvatar).then(setCurrentUser))
   }
 
   // Обработчик формы - Добавить место
   function handleAddPlaceSubmit(onAddPlace) {
-    // Установка isPending в true перед отправкой запроса
-    setIsPending(true);
-
-   //Вызов API для добавления новой карточки
-    api.addNewCard(onAddPlace)
-      .then((newCard) => {
+    handleSubmit(() => api.addNewCard(onAddPlace).then((newCard) => {
         setCards([newCard, ...cards]);
-        // Закрываем модальные окна
-        closeAllPopups();
-        // Установка isPending в false после успешного запроса
-        setIsPending(false);
-      })
-      .catch((error) => {
-        console.error('Error updating addPlace:', error);
-      });
+    })
+    );
   }
 
   // Закрытие всех попапов
@@ -164,24 +156,10 @@ function App() {
     setEditProfilePopupOpen(false);
     setAddPlacePopupOpen(false);
     setEditAvatarPopupOpen(false);
-    setSelectedCard(false);
-    setDeleteCard(false);
+    setSelectedCard(null);
+    setDeleteCard(null);
   }
 
-  // Обработчик нажатия на клавишу Escape для закрытия попапов
-  function handleEscKeyPress(event) {
-    if (event.key === 'Escape') {
-      closeAllPopups();
-    }
-  }
-
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleEscKeyPress);
-    return () => {
-      document.removeEventListener('keydown', handleEscKeyPress);
-    };
-  }, []);
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <Header />

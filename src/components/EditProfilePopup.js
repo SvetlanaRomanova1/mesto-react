@@ -1,42 +1,45 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import PopupWithForm from './PopupWithForm';
 import { CurrentUserContext } from '../constexts/CurrentUserContext';
-import { useValidateField } from '../hooks/use-validate-field';
+import { useFormAndValidation } from '../hooks/use-form-and-validation';
 
 
 function EditProfilePopup(props) {
 
   const currentUser = React.useContext(CurrentUserContext);
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const nameRef = useRef();
-  const descriptionRef = useRef();
-  const validateMessageName = useValidateField(nameRef);
-  const validateMessageDescription = useValidateField(descriptionRef);
-
-  function handleNameChange(event) {
-    setName(event.target.value);
-  }
-
-  function handleDescriptionChange(event) {
-    setDescription(event.target.value);
-  }
+  const {
+    values,
+    handleChange,
+    errors,
+    isValid,
+    resetForm,
+    setValues,
+    setIsValid
+  } = useFormAndValidation();
 
   // Обработчик отправки формы - Редактировать профиль
-  function handleSubmit(event) {
-    event.preventDefault();
+  function handleSubmit(e) {
+    e.preventDefault();
     props
       .onUpdateUser({
-        name,
-        about: description,
+        name: values.name,
+        about: values.about,
       });
   }
 
   useEffect(() => {
-    if (currentUser) {
-      setName(currentUser.name || '');
-      setDescription(currentUser.about || '');
+    if (currentUser.name) {
+      setValues({
+        ...values,
+        ['name']: currentUser.name || '',
+        ['about']: currentUser.about || ''
+      });
+      setIsValid(true);
+    }
+
+    return () => {
+      resetForm()
     }
   }, [currentUser]);
 
@@ -48,7 +51,7 @@ function EditProfilePopup(props) {
       isOpen={props.isOpen}
       onSubmit={handleSubmit}
       onClose={props.onClose}
-      disabled={props.isPending || validateMessageDescription || validateMessageName}
+      disabled={props.isPending || !isValid}
       isPending={props.isPending}
     >
       <label className='popup__field'>
@@ -60,13 +63,12 @@ function EditProfilePopup(props) {
           placeholder='Имя'
           minLength='2'
           maxLength='40'
-          value={name}
-          onChange={handleNameChange}
+          value={values.name || ''}
+          onChange={handleChange}
           required
-          ref={nameRef}
         />
         <span className='popup__error-visible'>
-          {validateMessageName}
+          {errors.name}
         </span>
       </label>
       <label className='popup__field'>
@@ -74,17 +76,16 @@ function EditProfilePopup(props) {
           type='text'
           className='popup__input'
           id='job'
-          name='job'
+          name='about'
           placeholder='О себе'
           minLength='2'
           maxLength='200'
-          value={description}
-          onChange={handleDescriptionChange}
+          value={values.about || ''}
+          onChange={handleChange}
           required
-          ref={descriptionRef}
         />
         <span className='popup__error-visible' >
-          {validateMessageDescription}
+          {errors.about}
         </span>
       </label>
     </PopupWithForm>
