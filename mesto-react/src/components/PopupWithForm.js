@@ -1,4 +1,4 @@
-import { usePopupClose } from '../hooks/use-popup-close/index';
+import { usePopupClose } from '../hooks/use-popup-close';
 
 function PopupWithForm
 ({  isOpen,

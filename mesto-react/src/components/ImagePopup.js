@@ -1,5 +1,5 @@
 import React from 'react';
-import { usePopupClose } from '../hooks/use-popup-close/index';
+import { usePopupClose } from '../hooks/use-popup-close';
 
 function ImagePopup(props) {
 
